@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub Pages URL Converter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --accent: #238636;
+      --accent-hover: #2ea043;
+      --accent-glow: rgba(35, 134, 54, 0.25);
+      --blue: #388bfd;
+      --blue-glow: rgba(56, 139, 253, 0.2);
+      --text: #e6edf3;
+      --text-muted: #7d8590;
+      --text-subtle: #484f58;
+      --error: #f85149;
+      --error-bg: rgba(248, 81, 73, 0.1);
+      --success: #3fb950;
+      --success-bg: rgba(63, 185, 80, 0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 0;
+    }
+
+    /* Ambient glow background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(56, 139, 253, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 44px 44px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .logo svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--text);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Input section */
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 16px;
+      height: 16px;
+      color: var(--text-subtle);
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 13px 14px 13px 40px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: "SF Mono", ui-monospace, monospace;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+
+    input[type="url"]::placeholder {
+      color: var(--text-subtle);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      font-size: 13px;
+    }
+
+    input[type="url"]:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px var(--blue-glow);
+    }
+
+    input[type="url"].is-error {
+      border-color: var(--error);
+      box-shadow: 0 0 0 3px var(--error-bg);
+    }
+
+    /* Convert button */
+    .convert-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.1) inset, 0 2px 8px rgba(35,134,54,0.3);
+    }
+
+    .convert-btn:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 0 3px var(--accent-glow), 0 1px 0 rgba(255,255,255,0.1) inset;
+    }
+
+    .convert-btn:active {
+      transform: scale(0.98);
+    }
+
+    .convert-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Result box */
+    #result {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .result-box {
+      background: var(--success-bg);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+    }
+
+    .result-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--success);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .result-label svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .result-url-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #output-url {
+      flex: 1;
+      font-size: 13px;
+      font-family: "SF Mono", ui-monospace, monospace;
+      color: var(--blue);
+      word-break: break-all;
+      line-height: 1.5;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    #output-url:hover {
+      text-decoration: underline;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .copy-btn.copied {
+      background: var(--success-bg);
+      border-color: rgba(63, 185, 80, 0.4);
+      color: var(--success);
+    }
+
+    .copy-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    /* Open button */
+    .open-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid rgba(56, 139, 253, 0.35);
+      border-radius: var(--radius-sm);
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .open-btn:hover {
+      background: var(--blue-glow);
+      border-color: rgba(56, 139, 253, 0.6);
+    }
+
+    .open-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    /* Error box */
+    .error-box {
+      margin-top: 16px;
+      background: var(--error-bg);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 13px 16px;
+      font-size: 13px;
+      color: var(--error);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .error-box svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 20px;
+      color: var(--text-subtle);
+      font-size: 12px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* How it works */
+    .how-it-works {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+    }
+
+    .how-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .transform-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .transform-item {
+      font-family: "SF Mono", ui-monospace, monospace;
+      font-size: 11.5px;
+      line-height: 1.6;
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+
+    .transform-item.from {
+      background: rgba(56, 139, 253, 0.08);
+      color: var(--text-muted);
+      border: 1px solid rgba(56, 139, 253, 0.15);
+    }
+
+    .transform-item.to {
+      background: rgba(63, 185, 80, 0.08);
+      color: var(--success);
+      border: 1px solid rgba(63, 185, 80, 0.15);
+    }
+
+    .arrow {
+      text-align: center;
+      color: var(--text-subtle);
+      font-size: 14px;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-subtle);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="header">
+      <div class="logo">
+        <!-- GitHub Octocat icon -->
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+            0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+            -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+            .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+            -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+            .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+            .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+            0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+      </div>
+      <h1>GitHub Pages Converter</h1>
+      <p class="subtitle">Paste a GitHub blob URL and instantly get the<br>live GitHub Pages rendering link.</p>
+    </div>
+
+    <div class="input-group">
+      <label for="input-url">GitHub Blob URL</label>
+      <div class="input-wrapper">
+        <svg class="input-icon" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z"/>
+        </svg>
+        <input
+          type="url"
+          id="input-url"
+          placeholder="https://github.pie.apple.com/user/repo/blob/main/file.html"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+      </div>
+    </div>
+
+    <button class="convert-btn" onclick="convert()">
+      <svg viewBox="0 0 16 16" fill="currentColor">
+        <path d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm.75 4.75a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z"/>
+      </svg>
+      Convert to Pages URL
+    </button>
+
+    <div id="error-box" class="error-box">
+      <svg viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 16A8 8 0 108 0a8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5zm-.75 7a.75.75 0 100-1.5.75.75 0 000 1.5z"/>
+      </svg>
+      <span id="error-text"></span>
+    </div>
+
+    <div id="result">
+      <div class="result-box">
+        <div class="result-label">
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/>
+          </svg>
+          GitHub Pages URL
+        </div>
+        <div class="result-url-row">
+          <a id="output-url" href="#" target="_blank" rel="noopener noreferrer"></a>
+          <button class="copy-btn" id="copy-btn" onclick="copyUrl()">
+            <svg viewBox="0 0 16 16" fill="currentColor" id="copy-icon">
+              <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+              <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+        <a id="open-btn" href="#" target="_blank" rel="noopener noreferrer" class="open-btn">
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8.75 3a.75.75 0 000 1.5h1.69L6.22 8.72a.75.75 0 001.06 1.06L11.5 5.56v1.69a.75.75 0 001.5 0v-3.5a.75.75 0 00-.75-.75h-3.5zM3.25 2A1.75 1.75 0 001.5 3.75v9.5c0 .966.784 1.75 1.75 1.75h9.5A1.75 1.75 0 0014.5 13.25v-2a.75.75 0 00-1.5 0v2a.25.25 0 01-.25.25h-9.5a.25.25 0 01-.25-.25v-9.5a.25.25 0 01.25-.25h2a.75.75 0 000-1.5h-2z"/>
+          </svg>
+          Open in Browser
+        </a>
+      </div>
+    </div>
+
+    <div class="divider">How it works</div>
+
+    <div class="how-it-works">
+      <div class="how-title">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0a8 8 0 110 16A8 8 0 018 0zm.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM8 5.5a1 1 0 100-2 1 1 0 000 2z"/>
+        </svg>
+        URL transformation pattern
+      </div>
+      <div class="transform-row">
+        <div class="transform-item from">github.pie.apple.com/<strong style="color:#e6edf3">{user}</strong>/<strong style="color:#e6edf3">{repo}</strong>/blob/<strong style="color:#e6edf3">{branch}</strong>/<strong style="color:#e6edf3">{file}</strong></div>
+        <div class="arrow">↓</div>
+        <div class="transform-item to">pages.github.pie.apple.com/<strong style="color:#e6edf3">{user}</strong>/<strong style="color:#e6edf3">{repo}</strong>/<strong style="color:#e6edf3">{file}</strong></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">Apple Internal · GitHub Pages URL Converter</div>
+
+  <script>
+    const inputEl = document.getElementById('input-url');
+    const resultEl = document.getElementById('result');
+    const outputUrlEl = document.getElementById('output-url');
+    const openBtnEl = document.getElementById('open-btn');
+    const errorBoxEl = document.getElementById('error-box');
+    const errorTextEl = document.getElementById('error-text');
+    const copyBtnEl = document.getElementById('copy-btn');
+
+    // Allow pressing Enter to convert
+    inputEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') convert();
+    });
+
+    // Clear error state on input
+    inputEl.addEventListener('input', () => {
+      inputEl.classList.remove('is-error');
+      errorBoxEl.style.display = 'none';
+    });
+
+    function showError(msg) {
+      errorTextEl.textContent = msg;
+      errorBoxEl.style.display = 'flex';
+      inputEl.classList.add('is-error');
+      resultEl.style.display = 'none';
+    }
+
+    function convert() {
+      const raw = inputEl.value.trim();
+
+      if (!raw) {
+        showError('Please paste a GitHub blob URL first.');
+        return;
+      }
+
+      let url;
+      try {
+        url = new URL(raw);
+      } catch {
+        showError('That doesn\'t look like a valid URL. Please include the full https:// address.');
+        return;
+      }
+
+      // Expect: /{owner}/{repo}/blob/{branch}/{...filepath}
+      const parts = url.pathname.split('/').filter(Boolean);
+      // parts[0] = owner, parts[1] = repo, parts[2] = 'blob', parts[3] = branch, parts[4..] = file path
+
+      if (parts.length < 5 || parts[2] !== 'blob') {
+        showError('URL must point to a specific file. Expected format: /owner/repo/blob/branch/path/to/file');
+        return;
+      }
+
+      const owner   = parts[0];
+      const repo    = parts[1];
+      // parts[2] === 'blob'
+      // parts[3] === branch (dropped in pages URL)
+      const filePath = parts.slice(4).join('/');
+
+      // Reconstruct the GitHub Pages URL
+      // GitHub Enterprise Server uses pages.{hostname}/{owner}/{repo}/{file}
+      // (NOT {owner}.{hostname}/{repo}/{file} like public GitHub.com)
+      const pagesUrl = `${url.protocol}//pages.${url.hostname}/${owner}/${repo}/${filePath}`;
+
+      // Preserve any query string / hash
+      const suffix = (url.search || '') + (url.hash || '');
+
+      const finalUrl = pagesUrl + suffix;
+
+      // Show result
+      outputUrlEl.textContent = finalUrl;
+      outputUrlEl.href = finalUrl;
+      openBtnEl.href = finalUrl;
+      resultEl.style.display = 'block';
+      inputEl.classList.remove('is-error');
+      errorBoxEl.style.display = 'none';
+
+      // Reset copy button
+      copyBtnEl.classList.remove('copied');
+      copyBtnEl.innerHTML = `
+        <svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13">
+          <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+          <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+        </svg>
+        Copy`;
+    }
+
+    function copyUrl() {
+      const text = outputUrlEl.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtnEl.classList.add('copied');
+        copyBtnEl.innerHTML = `
+          <svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13">
+            <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/>
+          </svg>
+          Copied!`;
+        setTimeout(() => {
+          copyBtnEl.classList.remove('copied');
+          copyBtnEl.innerHTML = `
+            <svg viewBox="0 0 16 16" fill="currentColor" width="13" height="13">
+              <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+              <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+            </svg>
+            Copy`;
+        }, 2200);
+      }).catch(() => {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
+    }
+  </script>
+</body>
+</html>
