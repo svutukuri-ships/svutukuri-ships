@@ -1,16 +1,15 @@
-## Hi there 👋
+# Hi, I'm Swati 👋
 
-<!--
-**svutukuri-ships/svutukuri-ships** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+I build and ship tools, automation, and data workflows that make teams faster and production calmer.
 
-Here are some ideas to get you started:
+## 🔧 What I work on professionally
+- Internal tooling and workflow automation
+- Data pipelines and reporting
+- AI-powered automation
+- Incident management and operational reliability
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+## 🌱 Currently
+- Building various tools for managing and optimizing life
+
+## 📫 Reach me
+- LinkedIn: www.linkedin.com/in/svutukuri 
